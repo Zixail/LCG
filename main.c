@@ -11,7 +11,7 @@ char * get_a(char *);
 char * lcg(char *);
 char * test(char *);
 
-//  Функция для чтения комманды из INPUT
+//  Чтение комманды из  файла INPUT
 char * takeCommand(){
     FILE * fp = fopen(INPUT, "r");
     size_t size = BUFF;
@@ -28,7 +28,7 @@ char * takeCommand(){
     return command;
 }
 
-//  Печать в файл
+//  Печать в файл OUTPUT 
 void writeResult(char * result){
     FILE * fp = fopen(OUTPUT, "w");
     fputs(result, fp);
@@ -42,11 +42,11 @@ char * executeCommand(char * command){
     char * sep = strchr(command, ' ');
     size_t length = sep - command;
 
-    char * out = "no func";
+
+    char * out = command;
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
             out = func[i](command);
-            return 0;
         }
     }
     return out;
@@ -54,6 +54,7 @@ char * executeCommand(char * command){
 
 //  Функция для парсинга аргументов по заданному шаблону
 void getArg(char * command, int length, char * tmpl[], unsigned long long args[]){
+
     for(int i = 0; i < length; ++i){
         char * ptr = strstr(command, tmpl[i]);
         ptr = strchr(ptr, '=') + 1;
@@ -67,18 +68,24 @@ char * get_c(char * command){
     char * tmpl[] = {" cmin", " cmax", " m"};
     unsigned long long args[3] = {0};
     getArg(command, 3, tmpl, args);
+
+    // Блок кода алгоритма
+
     char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь должен быть вывод");
+    strcpy(out, "Здесь вывод в файл");
     return out;
 }
 
 //  Подбор минимального делящего на все простые делители
 char * get_a(char * command){
-    char * tmpl[] = {"m"};
+    char * tmpl[] = {" m"};
     unsigned long long args[1] = {0};
     getArg(command, 1, tmpl, args);
+
+    // Блок кода алгоритма
+
     char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь должен быть вывод");
+    strcpy(out, "Здесь вывод в файл");
     return out;
 }
 
@@ -87,15 +94,18 @@ char * lcg(char * command){
     char * tmpl[] = {" a", " x0", " c", " m", " n"};
     unsigned long long args[5] = {0};
     getArg(command, 5, tmpl, args);
+
+    // Блок кода алгоритма
+    
     char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь должен быть вывод");
+    strcpy(out, "Здесь вывод в файл");
     return out;
 }
 
 //  Проверка сгенерированной последовательности
 char * test(char * command){
     char * filename;
-    char * ptr = strstr(command, "inp");
+    char * ptr = strstr(command, " inp");
     ptr = strchr(ptr, '=') + 1;
     char * end = strchr(ptr, ' ');
     if (end == NULL){
@@ -104,12 +114,16 @@ char * test(char * command){
     size_t length = end - ptr;
     filename = malloc(length+1);
     strncpy(filename, ptr, length);
-    return filename;
+
+    // Блок кода алгоритма
+
+    char * out = malloc(100 * sizeof(char));
+    strcpy(out, "Здесь вывод в файл");
+    return out;
 }
 
 int main(void){
     char * command = takeCommand();
-    printf("%s\n", command);
     char * out = executeCommand(command);
     writeResult(out);
 
