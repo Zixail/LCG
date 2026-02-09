@@ -43,7 +43,8 @@ char * executeCommand(char * command){
     size_t length = sep - command;
 
 
-    char * out = command;
+    char * out = malloc(19);
+    out = "incorrect command.";
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
             out = func[i](command);
