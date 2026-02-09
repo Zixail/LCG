@@ -7,6 +7,9 @@
 #define OUTPUT "output.txt"
 
 char * get_c(char *);
+char * get_a(char *);
+char * lcg(char *);
+char * test(char *);
 
 //  Функция для чтения комманды из INPUT
 char * takeCommand(){
@@ -26,61 +29,75 @@ char * takeCommand(){
 }
 
 //  Функция определения прочитанной комманды и её запуска
-void * executeCommand(char * command){
+char * executeCommand(char * command){
     char * comms [4] = {"get_c", "get_a", "lcg", "test"};
-    void (*func[4])(char *) = {get_c};
+    char * (*func[4])(char *) = {get_c, get_a, lcg, test};
 
     char * sep = strchr(command, ' ');
-    int length = sep - command;
-    printf("%d\n", length);
+    size_t length = sep - command;
 
+    char * out = "no func";
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
             printf("%s\n", comms[i]);
-            func[i](command);
+            out = func[i](command);
             return 0;
         }
     }
-    printf("no func");
+    printf("%s", out);
+    return out;
 }
 
-void getArg(char * command, int length, char * tmpl[], char * args[]){
+void getArg(char * command, int length, char * tmpl[], unsigned long long args[]){
     for(int i = 0; i < length; ++i){
         char * ptr = strstr(command, tmpl[i]);
         ptr = strchr(ptr, '=') + 1;
-        char * sep = strchr(ptr, ' ');
-        int length = sep - ptr;
-        strncpy(args[i], ptr, length);
-        printf("%s\n", args[i]);
+        char * end;
+        args[i] = strtoull(ptr, &end, 10);
+        printf("%llu\n", args[i]);
     }
 }
 
-void get_c(char * command){
-    char * tmpl[] = {"cmin", "cmax", "m"};
-    char * args[3] = {0};
+char * get_c(char * command){
+    char * tmpl[] = {" cmin", " cmax", " m"};
+    unsigned long long args[3] = {0};
     getArg(command, 3, tmpl, args);
-    strcpy(command, "здесь должен быть вывод результата");
+    char * out = malloc(100 * sizeof(char));
+    strcpy(out, "Здесь должен быть вывод");
+    return out;
 }
 
-void get_a(char * command){
+char * get_a(char * command){
     char * tmpl[] = {"m"};
-    char * args[1] = {0};
+    unsigned long long args[1] = {0};
     getArg(command, 1, tmpl, args);
-    strcpy(command, "здесь должен быть вывод результата");
+    char * out = malloc(100 * sizeof(char));
+    strcpy(out, "Здесь должен быть вывод");
+    return out;
 }
 
-void lcg(char * command){
-    char * tmpl[] = {"a", "x0", "c", "m", "n"};
-    char * args[5] = {0};
-    getArg(command, 1, tmpl, args);
-    strcpy(command, "здесь должен быть вывод результата");
+char * lcg(char * command){
+    char * tmpl[] = {" a", " x0", " c", " m", " n"};
+    unsigned long long args[5] = {0};
+    getArg(command, 5, tmpl, args);
+    char * out = malloc(100 * sizeof(char));
+    strcpy(out, "Здесь должен быть вывод");
+    return out;
 }
 
-void test(char * command){
-    char * tmpl[] = {"inp"};
-    char * args[1] = {0};
-    getArg(command, 1, tmpl, args);
-    strcpy(command, "здесь должен быть вывод результата");
+char * test(char * command){
+    char * filename;
+    char * ptr = strstr(command, "inp");
+    ptr = strchr(ptr, '=') + 1;
+    char * end = strchr(ptr, ' ');
+    if (end == NULL){
+        end = strchr(ptr, '\0');
+    }
+    size_t length = end - ptr;
+    filename = malloc(length+1);
+    strncpy(filename, ptr, length);
+    printf("%s", filename);
+    return filename;
 }
 
 int main(void){
