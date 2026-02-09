@@ -28,6 +28,12 @@ char * takeCommand(){
     return command;
 }
 
+//  Печать в файл
+void writeResult(char * result){
+    FILE * fp = fopen(OUTPUT, "w");
+    fputs(result, fp);
+}
+
 //  Функция определения прочитанной комманды и её запуска
 char * executeCommand(char * command){
     char * comms [4] = {"get_c", "get_a", "lcg", "test"};
@@ -39,25 +45,24 @@ char * executeCommand(char * command){
     char * out = "no func";
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
-            printf("%s\n", comms[i]);
             out = func[i](command);
             return 0;
         }
     }
-    printf("%s", out);
     return out;
 }
 
+//  Функция для парсинга аргументов по заданному шаблону
 void getArg(char * command, int length, char * tmpl[], unsigned long long args[]){
     for(int i = 0; i < length; ++i){
         char * ptr = strstr(command, tmpl[i]);
         ptr = strchr(ptr, '=') + 1;
         char * end;
         args[i] = strtoull(ptr, &end, 10);
-        printf("%llu\n", args[i]);
     }
 }
 
+//  Подбор всех взаимно простых
 char * get_c(char * command){
     char * tmpl[] = {" cmin", " cmax", " m"};
     unsigned long long args[3] = {0};
@@ -67,6 +72,7 @@ char * get_c(char * command){
     return out;
 }
 
+//  Подбор минимального делящего на все простые делители
 char * get_a(char * command){
     char * tmpl[] = {"m"};
     unsigned long long args[1] = {0};
@@ -76,6 +82,7 @@ char * get_a(char * command){
     return out;
 }
 
+//  Генерация чисел 
 char * lcg(char * command){
     char * tmpl[] = {" a", " x0", " c", " m", " n"};
     unsigned long long args[5] = {0};
@@ -85,6 +92,7 @@ char * lcg(char * command){
     return out;
 }
 
+//  Проверка сгенерированной последовательности
 char * test(char * command){
     char * filename;
     char * ptr = strstr(command, "inp");
@@ -96,14 +104,14 @@ char * test(char * command){
     size_t length = end - ptr;
     filename = malloc(length+1);
     strncpy(filename, ptr, length);
-    printf("%s", filename);
     return filename;
 }
 
 int main(void){
     char * command = takeCommand();
     printf("%s\n", command);
-    executeCommand(command);
+    char * out = executeCommand(command);
+    writeResult(out);
 
     return 0;
 }
