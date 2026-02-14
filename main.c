@@ -56,7 +56,7 @@ ULL * getPrime(ULL m, int* length){
     ULL* prime = calloc(size, sizeof(ULL));
 
     ULL tmp = m;
-    for(ULL i = 2; i < tmp; ++i){
+    for(ULL i = 2; i <= tmp; ++i){
         if (tmp % i == 0){
             tmp /= i;
             if (counts == size){
@@ -71,29 +71,22 @@ ULL * getPrime(ULL m, int* length){
     return prime;
 }
 
-ULL * getRelative(ULL *prime, int length, ULL cmin, ULL cmax, ULL m, int* length2){
-    int counts = 0;
-    int size = 8;
-    ULL* relative = calloc(size, sizeof(ULL));
-    if (cmax >= m) cmax = m - 1;
-    for(ULL i = 2; i < cmax; ++i){
+void getRelative(ULL *prime, int length, ULL cmin, ULL cmax, ULL m){
+    FILE* fp = fopen(OUTPUT, "w");
+    if (cmax >= m) cmax = m;
+    for(ULL i = cmin; i < cmax; ++i){
         char flag = 1;
-        for(int j = 0; j < length; ++i){
+        for(int j = 0; j < length; ++j){
             if (i % prime[j] == 0){
                 flag = 0;
                 break;
             }
-            if (flag == 1){
-                if (counts == size){
-                    size *= 2;
-                    relative = realloc(relative, size * sizeof(ULL));
-                }
-                relative[counts++] = i;
-            }
+        }
+        if (flag == 1){
+            fprintf(fp, "%llu\n", i);
         }
     }
-    *length2 = counts;
-    return relative;
+    fclose(fp);
 }
 
 //  Функция для парсинга аргументов по заданному шаблону
@@ -127,16 +120,9 @@ void get_c(char * command){
     int length;
     ULL * prime = getPrime(m, &length);
 
-    int length2;
-    ULL * relative = getRelative(prime, length, cmin, cmax, m, &length2);
+    getRelative(prime, length, cmin, cmax, m);
 
-    FILE* fp = fopen(OUTPUT, "w");
-    for(int i = 0; i < length2; ++i){
-        fprintf(fp, "%llu\n", relative[i]);
-    }
-    fclose(fp);
     free(prime);
-    free(relative);
 }
 
 //  Подбор минимального делящего на все простые делители
@@ -268,20 +254,23 @@ void test(char * command){
         return;
     }
     ptr = strchr(ptr, '=') + 1;
+    while(*ptr == ' '){
+        ptr++;
+    }
     char * end = strchr(ptr, ' ');
     if (end == NULL){
         end = strchr(ptr, '\0');
     }
     size_t length = end - ptr;
-    filename = malloc(length+1);
+    filename = calloc(length+1, sizeof(char));
     strncpy(filename, ptr, length);
 
     int size = 8;
     int count = 0;
     ULL *digits = calloc(size, sizeof(ULL));
-    FILE *fp = fopen(filename, "r");
     ULL cur_num = 0;
-    while (fscanf(fp, "%llu", &cur_num) == 1) {
+    FILE* fp = fopen(filename, "r");
+    while (fscanf(fp, "%llu", &cur_num) == 1 && count < 100000) {
         if (size == count) {
             size *= 2;
             ULL *tmp = realloc(digits, size * sizeof(ULL));
@@ -294,6 +283,9 @@ void test(char * command){
     ULL median = digits[count/2];
     int count_zeros = 0;
     int count_ones = 0;
+    int R;
+    long double expected_value;
+    long double Z;
     for (int i = 0; i < count; i++) {
         if (digits[i] < median) {
             digits[i] = 0;
@@ -304,27 +296,28 @@ void test(char * command){
             count_ones += 1;
         }
 
-        long double expected_value = (double)(2*count_ones*count_zeros) / (double)count + 1;
+        expected_value = (double)(2*count_ones*count_zeros) / (double)count + 1;
         long double variance_square = (double)(2*count_ones*count_zeros*(2*count_ones*count_zeros - count)) /
                                       (double)((count*count)*(count - 1));
 
-        int R = 0;
-        for (int i = 1; i < count; i++) {
-            if (digits[i] != digits[i-1]) R += 1;
+        R = 0;
+        for (int j = 1; j < count; j++) {
+            if (digits[j] != digits[j-1]) R += 1;
         }
 
-        long double Z = (R - expected_value) / sqrtl(variance_square);
-
-        FILE* fp = fopen(OUTPUT, "w");
-        fprintf(fp, "Наблюдаемое число серий: %d\n", R);
-        fprintf(fp, "Ожидаемое число серий: %Lf\n", expected_value);
-        fprintf(fp, "Z: %Lf\n", Z);
-        if (fabs(Z) < 2) fprintf(fp, "Последовательность случайна");
-        if (fabs(Z) >= 2 && fabs(Z) < 3) fprintf(fp, "Последовательность может быть не случайна, стоит проверить точнее");
-        if (fabs(Z) >= 3) fprintf(fp, "Последовательность почти наверняка не случайна");
+        Z = (R - expected_value) / sqrtl(variance_square);
     }
-    free(digits);
     fclose(fp);
+    FILE* fw = fopen(OUTPUT, "w");
+    fprintf(fp, "Наблюдаемое число серий: %d\n", R);
+    fprintf(fp, "Ожидаемое число серий: %Lf\n", expected_value);
+    fprintf(fp, "Z: %Lf\n", Z);
+    if (fabs(Z) < 2) fprintf(fp, "Последовательность случайна");
+    if (fabs(Z) >= 2 && fabs(Z) < 3) fprintf(fp, "Последовательность может быть не случайна, стоит проверить точнее");
+    if (fabs(Z) >= 3) fprintf(fp, "Последовательность почти наверняка не случайна");
+
+    free(digits);
+    fclose(fw);
 }
 
 
