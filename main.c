@@ -132,14 +132,28 @@ void get_c(char * command){
 }
 
 //  Подбор минимального делящего на все простые делители
-void get_a(char * command){
+void get_a(char * command)
+{   
     char * tmpl[] = {" m"};
     ULL args[1] = {0};
     getArg(command, 1, tmpl, args);
+    ULL m = args[0];
 
-    // Блок кода алгоритма
+    int len = 0;
+    ULL a = 1;
+    ULL *primes = getPrime(m, &len);
+    for (int i = 0; i < len; i++) {
+        a *= primes[i];
+    }
+    a += 1;
 
+    if (a == 2) printf("no solution");
+    else {
+        FILE *fp = fopen(OUTPUT, "w");
+        fprintf(fp, "%llu\n", a);
+    }
 }
+
 
 //  Генерация чисел 
 void lcg(char * command){
