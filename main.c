@@ -5,7 +5,6 @@
 
 #define ULL unsigned long long
 
-#define BUFF 16
 #define INPUT "input.txt"
 #define OUTPUT "output.txt"
 
@@ -18,7 +17,7 @@ void test(char *);
 //  Чтение комманды из  файла INPUT
 char * takeCommand(){
     FILE * fp = fopen(INPUT, "r");
-    size_t size = BUFF;
+    size_t size = 16;
     size_t received = 0;
     char * command = calloc(size + 1, sizeof(char));
 
