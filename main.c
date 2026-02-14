@@ -30,12 +30,6 @@ char * takeCommand(){
     return command;
 }
 
-//  Печать в файл OUTPUT 
-void writeResult(char * result){
-    FILE * fp = fopen(OUTPUT, "w");
-    fputs(result, fp);
-}
-
 //  Функция определения прочитанной комманды и её запуска
 void executeCommand(char * command){
     char * comms [4] = {"get_c", "get_a", "lcg", "test"};
@@ -47,8 +41,12 @@ void executeCommand(char * command){
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
             func[i](command);
+            return;
         }
     }
+    FILE * fp = fopen(OUTPUT, "w");
+    fprintf(fp, "incorrect command\n");
+    fclose(fp);
 }
 
 ULL * getPrime(ULL m, int* length){
@@ -124,11 +122,11 @@ void get_c(char * command){
     int length2;
     ULL * relative = getRelative(prime, length, cmin, cmax, m, &length2);
 
-    FILE* fp = fopen("output.txt", "w");
+    FILE* fp = fopen(OUTPUT, "w");
     for(int i = 0; i < length2; ++i){
         fprintf(fp, "%llu\n", relative[i]);
     }
-
+    fclose(fp);
 }
 
 //  Подбор минимального делящего на все простые делители
@@ -151,6 +149,7 @@ void get_a(char * command)
     else {
         FILE *fp = fopen(OUTPUT, "w");
         fprintf(fp, "%llu\n", a);
+        fclose(fp);
     }
 }
 
@@ -161,7 +160,31 @@ void lcg(char * command){
     ULL args[5] = {0};
     getArg(command, 5, tmpl, args);
 
-    // Блок кода алгоритма
+    ULL a = args[0];
+    ULL x0 = args[1];
+    ULL c = args[2];
+    ULL m = args[3];
+    ULL n = args[4];
+
+    if (n == 0 || a >= m || c >= m || x0 >= m){
+        FILE *fp = fopen(OUTPUT, "w");
+        fprintf(fp, "no solution");
+        fclose(fp);
+        return;
+    }
+
+    ULL* array = calloc(n, sizeof(ULL));
+
+    array[0] = (a * x0 + c) % m;
+    for(ULL i = 1; i < n; ++i){
+        array[i] = (a * array[i-1] + c) % m;
+    }
+
+    FILE* fp = fopen(OUTPUT, "w");
+    for(int i = 0; i < n; ++i){
+        fprintf(fp, "%llu\n", array[i]);
+    }
+    fclose(fp);
     
 }
 

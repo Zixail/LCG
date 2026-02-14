@@ -4,3 +4,4 @@
 test.c
 testev.c
 factor.c
+!output.txt
