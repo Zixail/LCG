@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define ULL unsigned long long
 
@@ -154,6 +155,11 @@ void get_a(char * command)
 }
 
 
+ULL nextNumber(ULL a, ULL x0, ULL c, ULL m){
+    ULL x = (a * x0 + c) % m;
+    return x;
+}
+
 //  Генерация чисел 
 void lcg(char * command){
     char * tmpl[] = {" a", " x0", " c", " m", " n"};
@@ -173,19 +179,44 @@ void lcg(char * command){
         return;
     }
 
-    ULL* array = calloc(n, sizeof(ULL));
-
-    array[0] = (a * x0 + c) % m;
-    for(ULL i = 1; i < n; ++i){
-        array[i] = (a * array[i-1] + c) % m;
-    }
-
+    ULL x = x0;
     FILE* fp = fopen(OUTPUT, "w");
-    for(int i = 0; i < n; ++i){
-        fprintf(fp, "%llu\n", array[i]);
+
+    for(ULL i = 0; i < n; ++i){
+        x = nextNumber(a, x, c, m);
+        fprintf(fp, "%llu\n", x);
     }
+
     fclose(fp);
     
+}
+
+void floid(ULL a, ULL x0, ULL c, ULL m){
+    ULL turtle = x0;
+    ULL hare = x0;
+
+    do{
+        turtle = nextNumber(a, turtle, c, m);
+        hare = nextNumber(a, hare, c, m);
+        hare = nextNumber(a, hare, c, m);
+    } while (turtle != hare);
+
+    ULL mu = 0;
+    turtle = x0;
+    while(turtle != hare){
+        turtle = nextNumber(a, turtle, c, m);
+        hare = nextNumber(a, hare, c, m);
+        ++mu;
+    }
+
+    ULL lam = 0;
+    do{
+        hare = nextNumber(a, hare, c, m);
+        ++lam;
+    } while (hare != turtle);
+
+    printf("mu = %llu\n", mu);
+    printf("lam = %llu\n", lam);
 }
 
 //  Проверка сгенерированной последовательности
@@ -201,13 +232,65 @@ void test(char * command){
     filename = malloc(length+1);
     strncpy(filename, ptr, length);
 
-    // Блок кода алгоритма
+    int size = 8;
+    int count = 0;
+    ULL *digits = calloc(size, sizeof(ULL));
+    FILE *fp = fopen(filename, "r");
+    ULL cur_num = 0;
+    while (fscanf(fp, "%llu", &cur_num) == 1) {
+        if (size == count) {
+            size *= 2;
+            ULL *tmp = realloc(digits, size * sizeof(ULL));
+            digits = tmp;
+        }
+        digits[count] = cur_num;
+        count++;
+    }
 
+    ULL median = digits[count/2];
+    int count_zeros = 0;
+    int count_ones = 0;
+    for (int i = 0; i < count; i++) {
+        if (digits[i] < median) {
+            digits[i] = 0;
+            count_zeros += 1;
+        }
+        else {
+            digits[i] = 1;
+            count_ones += 1;
+        }
+
+        long double expected_value = (double)(2*count_ones*count_zeros) / (double)count + 1;
+        long double variance_square = (double)(2*count_ones*count_zeros*(2*count_ones*count_zeros - count)) /
+                                      (double)((count*count)*(count - 1));
+
+        int R = 0;
+        for (int i = 1; i < count; i++) {
+            if (digits[i] != digits[i-1]) R += 1;
+        }
+
+        long double Z = (R - expected_value) / sqrtl(variance_square);
+
+        printf("Наблюдаемое число серий: %d\n", R);
+        printf("Ожидаемое число серий: %Lf\n", expected_value);
+        printf("Z: %Lf\n", Z);
+        if (fabs(Z) < 2) printf("Последовательность случайна");
+        if (fabs(Z) >= 2 && fabs(Z) < 3) printf("Последовательность может быть не случайна, стоит проверить точнее");
+        if (fabs(Z) >= 3) printf("Последовательность почти наверняка не случайна");
+    }
+    free(digits);
+    fclose(fp);
 }
 
+
 int main(void){
-    char * command = takeCommand();
-    executeCommand(command);
+    ULL a = 12770ULL;
+    ULL c = 2317ULL;
+    ULL m = 204467440737095581ULL;
+    ULL x0 = 1771103149ULL;
+    floid(a, x0, c, m);
+    //char * command = takeCommand();
+    //executeCommand(command);
 
     return 0;
 }
