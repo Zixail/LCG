@@ -2,3 +2,5 @@
 *.txt
 .vscode/
 test.c
+testev.c
+factor.c

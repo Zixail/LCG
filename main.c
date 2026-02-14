@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ULL unsigned long long
+
 #define BUFF 16
 #define INPUT "input.txt"
 #define OUTPUT "output.txt"
 
-char * get_c(char *);
-char * get_a(char *);
-char * lcg(char *);
-char * test(char *);
+void get_c(char *);
+void get_a(char *);
+void lcg(char *);
+void test(char *);
 
 //  Чтение комманды из  файла INPUT
 char * takeCommand(){
@@ -35,26 +37,68 @@ void writeResult(char * result){
 }
 
 //  Функция определения прочитанной комманды и её запуска
-char * executeCommand(char * command){
+void executeCommand(char * command){
     char * comms [4] = {"get_c", "get_a", "lcg", "test"};
-    char * (*func[4])(char *) = {get_c, get_a, lcg, test};
+    void (*func[4])(char *) = {get_c, get_a, lcg, test};
 
     char * sep = strchr(command, ' ');
     size_t length = sep - command;
 
-
-    char * out = malloc(19);
-    out = "incorrect command.";
     for (int i = 0; i < 4; ++i){
         if (strncmp(command, comms[i], length) == 0){
-            out = func[i](command);
+            func[i](command);
         }
     }
-    return out;
+}
+
+ULL * getPrime(ULL m, int* length){
+    int counts = 0;
+    int size = 8;
+    ULL* prime = calloc(size, sizeof(ULL));
+
+    ULL tmp = m;
+    for(ULL i = 2; i < tmp; ++i){
+        if (tmp % i == 0){
+            tmp /= i;
+            if (counts == size){
+                size *= 2;
+                prime = realloc(prime, size * sizeof(ULL));
+            }
+            prime[counts++] = i;
+            while(tmp % i == 0) tmp /= i;
+        }
+    }
+    *length = counts;
+    return prime;
+}
+
+ULL * getRelative(ULL *prime, int length, ULL cmin, ULL cmax, ULL m, int* length2){
+    int counts = 0;
+    int size = 8;
+    ULL* relative = calloc(size, sizeof(ULL));
+    if (cmax >= m) cmax = m - 1;
+    for(ULL i = 2; i < cmax; ++i){
+        char flag = 1;
+        for(int j = 0; j < length; ++i){
+            if (i % prime[j] == 0){
+                flag = 0;
+                break;
+            }
+            if (flag == 1){
+                if (counts == size){
+                    size *= 2;
+                    relative = realloc(relative, size * sizeof(ULL));
+                }
+                relative[counts++] = i;
+            }
+        }
+    }
+    *length2 = counts;
+    return relative;
 }
 
 //  Функция для парсинга аргументов по заданному шаблону
-void getArg(char * command, int length, char * tmpl[], unsigned long long args[]){
+void getArg(char * command, int length, char * tmpl[], ULL args[]){
 
     for(int i = 0; i < length; ++i){
         char * ptr = strstr(command, tmpl[i]);
@@ -65,46 +109,50 @@ void getArg(char * command, int length, char * tmpl[], unsigned long long args[]
 }
 
 //  Подбор всех взаимно простых
-char * get_c(char * command){
+void get_c(char * command){
     char * tmpl[] = {" cmin", " cmax", " m"};
-    unsigned long long args[3] = {0};
+    ULL args[3] = {0};
     getArg(command, 3, tmpl, args);
 
-    // Блок кода алгоритма
+    ULL cmin = args[0];
+    ULL cmax = args[1];
+    ULL m    = args[2];
 
-    char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь вывод в файл");
-    return out;
+    int length;
+    ULL * prime = getPrime(m, &length);
+
+    int length2;
+    ULL * relative = getRelative(prime, length, cmin, cmax, m, &length2);
+
+    FILE* fp = fopen("output.txt", "w");
+    for(int i = 0; i < length2; ++i){
+        fprintf(fp, "%llu\n", relative[i]);
+    }
+
 }
 
 //  Подбор минимального делящего на все простые делители
-char * get_a(char * command){
+void get_a(char * command){
     char * tmpl[] = {" m"};
-    unsigned long long args[1] = {0};
+    ULL args[1] = {0};
     getArg(command, 1, tmpl, args);
 
     // Блок кода алгоритма
 
-    char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь вывод в файл");
-    return out;
 }
 
 //  Генерация чисел 
-char * lcg(char * command){
+void lcg(char * command){
     char * tmpl[] = {" a", " x0", " c", " m", " n"};
-    unsigned long long args[5] = {0};
+    ULL args[5] = {0};
     getArg(command, 5, tmpl, args);
 
     // Блок кода алгоритма
     
-    char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь вывод в файл");
-    return out;
 }
 
 //  Проверка сгенерированной последовательности
-char * test(char * command){
+void test(char * command){
     char * filename;
     char * ptr = strstr(command, " inp");
     ptr = strchr(ptr, '=') + 1;
@@ -118,15 +166,11 @@ char * test(char * command){
 
     // Блок кода алгоритма
 
-    char * out = malloc(100 * sizeof(char));
-    strcpy(out, "Здесь вывод в файл");
-    return out;
 }
 
 int main(void){
     char * command = takeCommand();
-    char * out = executeCommand(command);
-    writeResult(out);
+    executeCommand(command);
 
     return 0;
 }
