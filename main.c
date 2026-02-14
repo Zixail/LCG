@@ -12,6 +12,7 @@
 void get_c(char *);
 void get_a(char *);
 void lcg(char *);
+void floid(char *);
 void test(char *);
 
 //  Чтение комманды из  файла INPUT
@@ -33,13 +34,13 @@ char * takeCommand(){
 
 //  Функция определения прочитанной комманды и её запуска
 void executeCommand(char * command){
-    char * comms [4] = {"get_c", "get_a", "lcg", "test"};
-    void (*func[4])(char *) = {get_c, get_a, lcg, test};
+    char * comms [5] = {"get_c", "get_a", "lcg", "test", "floid"};
+    void (*func[5])(char *) = {get_c, get_a, lcg, test, floid};
 
     char * sep = strchr(command, ' ');
     size_t length = sep - command;
 
-    for (int i = 0; i < 4; ++i){
+    for (int i = 0; i < 5; ++i){
         if (strncmp(command, comms[i], length) == 0){
             func[i](command);
             return;
@@ -97,21 +98,28 @@ ULL * getRelative(ULL *prime, int length, ULL cmin, ULL cmax, ULL m, int* length
 }
 
 //  Функция для парсинга аргументов по заданному шаблону
-void getArg(char * command, int length, char * tmpl[], ULL args[]){
+int getArg(char * command, int length, char * tmpl[], ULL args[]){
 
     for(int i = 0; i < length; ++i){
         char * ptr = strstr(command, tmpl[i]);
+        if (ptr == NULL) return 1;
         ptr = strchr(ptr, '=') + 1;
         char * end;
         args[i] = strtoull(ptr, &end, 10);
     }
+    return 0;
 }
 
 //  Подбор всех взаимно простых
 void get_c(char * command){
     char * tmpl[] = {" cmin", " cmax", " m"};
     ULL args[3] = {0};
-    getArg(command, 3, tmpl, args);
+    if (getArg(command, 3, tmpl, args)){
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "incorrect command");
+        fclose(fp);
+        return;
+    }
 
     ULL cmin = args[0];
     ULL cmax = args[1];
@@ -128,6 +136,8 @@ void get_c(char * command){
         fprintf(fp, "%llu\n", relative[i]);
     }
     fclose(fp);
+    free(prime);
+    free(relative);
 }
 
 //  Подбор минимального делящего на все простые делители
@@ -135,7 +145,12 @@ void get_a(char * command)
 {   
     char * tmpl[] = {" m"};
     ULL args[1] = {0};
-    getArg(command, 1, tmpl, args);
+    if (getArg(command, 1, tmpl, args)){
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "incorrect command");
+        fclose(fp);
+        return;
+    }
     ULL m = args[0];
 
     int len = 0;
@@ -145,13 +160,16 @@ void get_a(char * command)
         a *= primes[i];
     }
     a += 1;
-
-    if (a == 2) printf("no solution");
-    else {
-        FILE *fp = fopen(OUTPUT, "w");
-        fprintf(fp, "%llu\n", a);
-        fclose(fp);
+    
+    FILE *fp = fopen(OUTPUT, "w");
+    if (a == 2){
+        fprintf(fp, "no solution");
     }
+    else {
+        fprintf(fp, "%llu\n", a);
+    }
+    fclose(fp);
+    free(primes);
 }
 
 
@@ -164,7 +182,12 @@ ULL nextNumber(ULL a, ULL x0, ULL c, ULL m){
 void lcg(char * command){
     char * tmpl[] = {" a", " x0", " c", " m", " n"};
     ULL args[5] = {0};
-    getArg(command, 5, tmpl, args);
+    if (getArg(command, 5, tmpl, args)){
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "incorrect command");
+        fclose(fp);
+        return;
+    }
 
     ULL a = args[0];
     ULL x0 = args[1];
@@ -191,7 +214,21 @@ void lcg(char * command){
     
 }
 
-void floid(ULL a, ULL x0, ULL c, ULL m){
+void floid(char * command){
+    char * tmpl[] = {" a", " x0", " c", " m"};
+    ULL args[4] = {0};
+    if (getArg(command, 4, tmpl, args)){
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "incorrect command");
+        fclose(fp);
+        return;
+    }
+
+    ULL a = args[0];
+    ULL x0 = args[1];
+    ULL c = args[2];
+    ULL m = args[3];
+
     ULL turtle = x0;
     ULL hare = x0;
 
@@ -215,14 +252,22 @@ void floid(ULL a, ULL x0, ULL c, ULL m){
         ++lam;
     } while (hare != turtle);
 
-    printf("mu = %llu\n", mu);
-    printf("lam = %llu\n", lam);
+    FILE* fp = fopen(OUTPUT, "w");
+    fprintf(fp, "mu = %llu\n", mu);
+    fprintf(fp, "lam = %llu\n", lam);
+    fclose(fp);
 }
 
 //  Проверка сгенерированной последовательности
 void test(char * command){
     char * filename;
     char * ptr = strstr(command, " inp");
+    if (ptr == NULL){
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "incorrect command");
+        fclose(fp);
+        return;
+    }
     ptr = strchr(ptr, '=') + 1;
     char * end = strchr(ptr, ' ');
     if (end == NULL){
@@ -271,12 +316,13 @@ void test(char * command){
 
         long double Z = (R - expected_value) / sqrtl(variance_square);
 
-        printf("Наблюдаемое число серий: %d\n", R);
-        printf("Ожидаемое число серий: %Lf\n", expected_value);
-        printf("Z: %Lf\n", Z);
-        if (fabs(Z) < 2) printf("Последовательность случайна");
-        if (fabs(Z) >= 2 && fabs(Z) < 3) printf("Последовательность может быть не случайна, стоит проверить точнее");
-        if (fabs(Z) >= 3) printf("Последовательность почти наверняка не случайна");
+        FILE* fp = fopen(OUTPUT, "w");
+        fprintf(fp, "Наблюдаемое число серий: %d\n", R);
+        fprintf(fp, "Ожидаемое число серий: %Lf\n", expected_value);
+        fprintf(fp, "Z: %Lf\n", Z);
+        if (fabs(Z) < 2) fprintf(fp, "Последовательность случайна");
+        if (fabs(Z) >= 2 && fabs(Z) < 3) fprintf(fp, "Последовательность может быть не случайна, стоит проверить точнее");
+        if (fabs(Z) >= 3) fprintf(fp, "Последовательность почти наверняка не случайна");
     }
     free(digits);
     fclose(fp);
@@ -284,13 +330,9 @@ void test(char * command){
 
 
 int main(void){
-    ULL a = 12770ULL;
-    ULL c = 2317ULL;
-    ULL m = 204467440737095581ULL;
-    ULL x0 = 1771103149ULL;
-    floid(a, x0, c, m);
-    //char * command = takeCommand();
-    //executeCommand(command);
+    char * command = takeCommand();
+    executeCommand(command);
+    free(command);
 
     return 0;
 }
