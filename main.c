@@ -50,6 +50,7 @@ void executeCommand(char * command){
     fclose(fp);
 }
 
+//  Нахождение всех простых делителей числа
 ULL * getPrime(ULL m, int* length){
     int counts = 0;
     int size = 8;
@@ -71,6 +72,7 @@ ULL * getPrime(ULL m, int* length){
     return prime;
 }
 
+//  Нахождение всех взаимно простых числа
 void getRelative(ULL *prime, int length, ULL cmin, ULL cmax, ULL m){
     FILE* fp = fopen(OUTPUT, "w");
     if (cmax >= m) cmax = m;
@@ -125,7 +127,7 @@ void get_c(char * command){
     free(prime);
 }
 
-//  Подбор минимального делящего на все простые делители
+//  Подбор минимального делящегося на все простые делители
 void get_a(char * command)
 {   
     char * tmpl[] = {" m"};
@@ -157,7 +159,7 @@ void get_a(char * command)
     free(primes);
 }
 
-
+//  Генерации числа по прошлому
 ULL nextNumber(ULL a, ULL x0, ULL c, ULL m){
     ULL x = (a * x0 + c) % m;
     return x;
@@ -199,6 +201,7 @@ void lcg(char * command){
     
 }
 
+//  Определение периода  ЛКГ алгоритмом Флойда
 void floid(char * command){
     char * tmpl[] = {" a", " x0", " c", " m"};
     ULL args[4] = {0};
@@ -309,12 +312,12 @@ void test(char * command){
     }
     fclose(fp);
     FILE* fw = fopen(OUTPUT, "w");
-    fprintf(fp, "Наблюдаемое число серий: %d\n", R);
-    fprintf(fp, "Ожидаемое число серий: %Lf\n", expected_value);
-    fprintf(fp, "Z: %Lf\n", Z);
-    if (fabs(Z) < 2) fprintf(fp, "Последовательность случайна");
-    if (fabs(Z) >= 2 && fabs(Z) < 3) fprintf(fp, "Последовательность может быть не случайна, стоит проверить точнее");
-    if (fabs(Z) >= 3) fprintf(fp, "Последовательность почти наверняка не случайна");
+    fprintf(fw, "Наблюдаемое число серий: %d\n", R);
+    fprintf(fw, "Ожидаемое число серий: %Lf\n", expected_value);
+    fprintf(fw, "Z: %Lf\n", Z);
+    if (fabs(Z) < 2) fprintf(fw, "Последовательность случайна");
+    if (fabs(Z) >= 2 && fabs(Z) < 3) fprintf(fw, "Последовательность может быть не случайна, стоит проверить точнее");
+    if (fabs(Z) >= 3) fprintf(fw, "Последовательность почти наверняка не случайна");
 
     free(digits);
     fclose(fw);
